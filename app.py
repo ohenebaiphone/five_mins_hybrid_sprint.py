@@ -115,7 +115,8 @@ def load_state():
     return False
 
 # ── Web Server Setup ────────────────────────────────────────────────────────────
-app = Flask(__name__)
+template_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
+app = Flask(__name__, template_folder=template_dir)
 logging.getLogger('werkzeug').setLevel(logging.ERROR)
 
 @app.route('/')
