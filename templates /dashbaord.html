@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Polybot Off-Peak Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #090d16;
+            --card-bg: rgba(17, 25, 40, 0.75);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --text-primary: #f3f4f6;
+            --text-secondary: #9ca3af;
+            --accent-green: #00ffaa;
+            --accent-red: #ff4a5a;
+            --accent-blue: #3b82f6;
+            --glow-green: rgba(0, 255, 170, 0.15);
+            --glow-blue: rgba(59, 130, 246, 0.25);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.1) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(0, 255, 170, 0.05) 0px, transparent 50%);
+            font-family: 'Outfit', sans-serif;
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .brand h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #00ffaa, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        .brand p {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        .status-badge {
+            background: rgba(0, 255, 170, 0.08);
+            border: 1px solid var(--accent-green);
+            color: var(--accent-green);
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 0 15px var(--glow-green);
+        }
+
+        .status-badge .dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--accent-green);
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.9); opacity: 0.6; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(0.9); opacity: 0.6; }
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: transparent;
+        }
+
+        .card.wallet::before { background: var(--accent-blue); }
+        .card.streak1::before { background: var(--accent-green); }
+        .card.streak2::before { background: var(--accent-green); }
+        .card.market::before { background: var(--accent-blue); }
+
+        .card-label {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-value {
+            font-size: 2.2rem;
+            font-weight: 800;
+            font-family: 'Space Grotesk', sans-serif;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-subtext {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .layout-main {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 900px) {
+            .layout-main {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .section-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .table-container {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th {
+            background: rgba(255, 255, 255, 0.02);
+            padding: 1rem 1.25rem;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        td {
+            padding: 1rem 1.25rem;
+            font-size: 0.9rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .badge {
+            padding: 0.25rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge.win {
+            background: rgba(0, 255, 170, 0.08);
+            border: 1px solid var(--accent-green);
+            color: var(--accent-green);
+        }
+
+        .badge.loss {
+            background: rgba(255, 74, 90, 0.08);
+            border: 1px solid var(--accent-red);
+            color: var(--accent-red);
+        }
+
+        .console-container {
+            background: #04060b;
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 1.25rem;
+            font-family: 'Space Grotesk', monospace;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            height: 380px;
+            overflow-y: auto;
+            color: #a5b4fc;
+        }
+
+        .console-line {
+            margin-bottom: 0.5rem;
+            word-break: break-all;
+        }
+
+        .console-line.system { color: #818cf8; }
+        .console-line.success { color: var(--accent-green); }
+        .console-line.warning { color: #fbbf24; }
+        .console-line.error { color: var(--accent-red); }
+
+        .progress-track {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 5px;
+            margin-top: 0.5rem;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-green), #3b82f6);
+            border-radius: 5px;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="brand">
+                <h1>POLYBOT OFF-PEAK</h1>
+                <p>Guardrailed Off-Peak Polymarket Compounding Bot</p>
+            </div>
+            <div class="status-badge">
+                <div class="dot"></div>
+                <span>ACTIVE MONITOR</span>
+            </div>
+        </header>
+
+        <div class="stats-grid">
+            <div class="card wallet">
+                <div class="card-label">USDC Balance</div>
+                <div class="card-value" id="wallet-balance">$0.00</div>
+                <div class="card-subtext" id="wallet-phase">PHASE -</div>
+            </div>
+
+            <div class="card streak1">
+                <div class="card-label">
+                    <span>Streak 1 (Off-Peak Guarded)</span>
+                    <span id="s1-badge" class="badge">0/4 Wins</span>
+                </div>
+                <div class="card-value" id="s1-stake">$0.00</div>
+                <div class="progress-track">
+                    <div id="s1-progress" class="progress-bar"></div>
+                </div>
+            </div>
+
+            <div class="card streak2">
+                <div class="card-label">
+                    <span>Streak 2 (Close-Only)</span>
+                    <span id="s2-badge" class="badge">0/4 Wins</span>
+                </div>
+                <div class="card-value" id="s2-stake">$0.00</div>
+                <div class="progress-track">
+                    <div id="s2-progress" class="progress-bar"></div>
+                </div>
+            </div>
+
+            <div class="card market">
+                <div class="card-label">BTC Market Status</div>
+                <div class="card-value" id="btc-price">$-</div>
+                <div class="card-subtext" id="btc-ptb">PTB: $-</div>
+            </div>
+        </div>
+
+        <div class="layout-main">
+            <div>
+                <h2 class="section-title">Trade History 📈</h2>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Streak</th>
+                                <th>Side</th>
+                                <th>Stake</th>
+                                <th>Result</th>
+                            </tr>
+                        </thead>
+                        <tbody id="trades-body">
+                            <tr>
+                                <td colspan="5" style="text-align: center; color: var(--text-secondary);">Waiting for trades...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div>
+                <h2 class="section-title">Live Engine Log 🖥️</h2>
+                <div class="console-container" id="console-logs">
+                    <div class="console-line system">[System] Off-Peak Engine initialized. Listening for updates...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function fetchUpdates() {
+            try {
+                const response = await fetch('/api/status');
+                if (!response.ok) return;
+                const data = await response.json();
+
+                document.getElementById('wallet-balance').innerText = `$${data.balance.toFixed(2)}`;
+                document.getElementById('wallet-phase').innerText = `PHASE ${data.phase} MODE`;
+
+                document.getElementById('s1-stake').innerText = `$${data.streak_1.stake.toFixed(2)}`;
+                document.getElementById('s1-badge').innerText = `${data.streak_1.wins}/4 Wins`;
+                document.getElementById('s1-progress').style.width = `${(data.streak_1.wins / 4) * 100}%`;
+
+                document.getElementById('s2-stake').innerText = `$${data.streak_2.stake.toFixed(2)}`;
+                document.getElementById('s2-badge').innerText = `${data.streak_2.wins}/4 Wins`;
+                document.getElementById('s2-progress').style.width = `${(data.streak_2.wins / 4) * 100}%`;
+
+                if (data.market.price) {
+                    document.getElementById('btc-price').innerText = `$${data.market.price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                } else {
+                    document.getElementById('btc-price').innerText = '$-';
+                }
+                if (data.market.ptb) {
+                    document.getElementById('btc-ptb').innerText = `PTB: $${data.market.ptb.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                } else {
+                    document.getElementById('btc-ptb').innerText = 'PTB: $-';
+                }
+
+                const tradesBody = document.getElementById('trades-body');
+                if (data.trades && data.trades.length > 0) {
+                    tradesBody.innerHTML = '';
+                    data.trades.forEach(t => {
+                        const tr = document.createElement('tr');
+                        const outcomeClass = t.outcome.toLowerCase().includes('win') ? 'win' : (t.outcome.toLowerCase().includes('loss') ? 'loss' : '');
+                        const outcomeBadge = outcomeClass ? `<span class="badge ${outcomeClass}">${t.outcome}</span>` : t.outcome;
+                        
+                        tr.innerHTML = `
+                            <td>${t.time}</td>
+                            <td>${t.name}</td>
+                            <td>${t.side}</td>
+                            <td>$${t.stake.toFixed(2)}</td>
+                            <td>${outcomeBadge}</td>
+                        `;
+                        tradesBody.appendChild(tr);
+                    });
+                } else {
+                    tradesBody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">No trades placed yet.</td></tr>';
+                }
+
+                const consoleContainer = document.getElementById('console-logs');
+                if (data.logs && data.logs.length > 0) {
+                    consoleContainer.innerHTML = '';
+                    data.logs.forEach(log => {
+                        const div = document.className = 'console-line';
+                        if (log.includes('WIN')) div.className += ' success';
+                        else if (log.includes('LOSS')) div.className += ' error';
+                        else if (log.includes('PLACING') || log.includes('LIVE')) div.className += ' warning';
+                        else div.className += ' system';
+                        
+                        div.innerText = log;
+                        consoleContainer.appendChild(div);
+                    });
+                    consoleContainer.scrollTop = consoleContainer.scrollHeight;
+                }
+
+            } catch (err) {
+                console.error("Error fetching status updates:", err);
+            }
+        }
+
+        setInterval(fetchUpdates, 5000);
+        fetchUpdates();
+    </script>
+</body>
+</html>
